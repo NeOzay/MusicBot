@@ -1,7 +1,6 @@
 {
   "name": "music",
   "version": "0.0.1",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,7 +10,17 @@
   "dependencies": {
     "@discordjs/voice": "^0.14.0",
     "discord.js": "^14.7.1",
-    "libsodium-wrappers": "^0.7.10",
+    "ffmpeg-static": "^5.1.0",
+    "libsodium-wrappers": "^0.7.11",
     "ytdl-core": "^4.11.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NeOzay/MusicBot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NeOzay/MusicBot/issues"
+  },
+  "homepage": "https://github.com/NeOzay/MusicBot#readme",
+  "description": ""
 }
