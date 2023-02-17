@@ -1,14 +1,27 @@
 const ytdl = require("ytdl-core");
-const fs = require('fs')
 
 const Discord = require("discord.js");
-const { joinVoiceChannel } = require("@discordjs/voice")
-const client = new Discord.Client({ intents: ["Guilds", "GuildMessages"] });
+const {joinVoiceChannel, createAudioResource, createAudioPlayer, VoiceConnection, AudioPlayer} = require('@discordjs/voice');
 const { prefix, token } = require("./config.json");
 
+
+const client = new Discord.Client({ intents: ["Guilds", "GuildMessages"] });
+client.login(token);
+
+/** 
+ * @typedef {Object} ServerQueue
+ * @property {import("discord.js").Channel} textChannel
+ * @property {import("discord.js").VoiceBasedChannel} voiceChannel
+ * @property {VoiceConnection} connection
+ * @property {{title:string, url:string}[]} songs
+ * @property {number} volume
+ * @property {AudioPlayer} player
+ * @property {boolean} playing
+ */
+
+/** @type Map<string,ServerQueue> */
 const queue = new Map()
 
-client.login(token);
 client.on("messageCreate", (message) => {
   if (message.author.bot) return
   if (!message.content.startsWith(prefix)) return
@@ -42,6 +55,7 @@ async function execute(message, serverQueue) {
   };
 
   if (!serverQueue) {
+    /** @type {ServerQueue} */
     const queueContruct = {
       textChannel: message.channel,
       voiceChannel: voiceChannel,
@@ -60,6 +74,8 @@ async function execute(message, serverQueue) {
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
       queueContruct.connection = connection;
+      queueContruct.player = createAudioPlayer()
+      connection.subscribe(queueContruct.player)
       play(message.guild, queueContruct.songs[0]);
     } catch (err) {
       console.log(err);
@@ -72,23 +88,20 @@ async function execute(message, serverQueue) {
   }
 }
 
+/**
+ * @param {Discord.Guild} guild
+ * @param {{title:string, url:string}} song
+ */
 function play(guild, song) {
   const serverQueue = queue.get(guild.id);
   if (!song) {
-    serverQueue.voiceChannel.leave();
+    serverQueue.connection.destroy();
     queue.delete(guild.id);
     return;
   }
-
-  const dispatcher = serverQueue.connection
-    .play(ytdl(song.url))
-    .on("finish", () => {
-      serverQueue.songs.shift();
-      play(guild, serverQueue.songs[0]);
-    })
-    .on("error", error => console.error(error));
-  dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
-  serverQueue.textChannel.send(`Start playing: **${song.title}**`);
+  const player = serverQueue.player
+  let resource = createAudioResource(ytdl(song.url, {filter: "audioonly", format:"m4a"}))
+  player.play(resource)
 }
 
 //const url = "https://m.youtube.com/watch?v=nhePDXNZ0kU"

@@ -1,23 +1,19 @@
 const ytdl = require("ytdl-core");
-const fs = require('fs')
 
 const Discord = require("discord.js");
-const { joinVoiceChannel } = require("@discordjs/voice")
-const client = new Discord.Client({ intents: ["Guilds", "GuildMessages", "MessageContent"] });
+
+const {joinVoiceChannel, createAudioResource, createAudioPlayer} = require('@discordjs/voice');
 
 const { prefix } = require("./config.json");
-const {token} = require("./.token.json")
+const { token } = require("./.token.json")
 
-const { createAudioResource } = require('@discordjs/voice');
-
-const queue = new Map()
-
-const { createAudioPlayer } = require('@discordjs/voice');
-const { error } = require("console");
 
 const player = createAudioPlayer();
 
+const client = new Discord.Client({ intents: ["Guilds", "GuildMessages", "MessageContent", "GuildVoiceStates"] });
+
 client.login(token);
+
 client.on("messageCreate", (message) => {
 	//console.log(message)
   if (message.author.bot) return
@@ -45,7 +41,7 @@ async function execute(message, serverQueue) {
     console.log(error)
   })
 	const subscription = connection.subscribe(player);
-	let resource = createAudioResource("./test.mp4")
+	let resource = createAudioResource(ytdl(args[1], {filter: "audioonly", format:"m4a"}))
 
 	player.play(resource)
 }
