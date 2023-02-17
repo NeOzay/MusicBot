@@ -1,11 +1,13 @@
 const ytdl = require("ytdl-core");
 
 const Discord = require("discord.js");
-const {joinVoiceChannel, createAudioResource, createAudioPlayer, VoiceConnection, AudioPlayer} = require('@discordjs/voice');
-const { prefix, token } = require("./config.json");
+const {joinVoiceChannel, createAudioResource, createAudioPlayer, VoiceConnection, AudioPlayer, AudioPlayerStatus, VoiceConnectionStatus, entersState } = require('@discordjs/voice');
+const { prefix } = require("./config.json");
+const { token } = require("./.token.json")
+const { AuditLogOptionsType } = require("discord.js");
 
 
-const client = new Discord.Client({ intents: ["Guilds", "GuildMessages"] });
+const client = new Discord.Client({ intents: ["Guilds", "GuildMessages", "MessageContent", "GuildVoiceStates", ""] });
 client.login(token);
 
 /** 
@@ -17,32 +19,49 @@ client.login(token);
  * @property {number} volume
  * @property {AudioPlayer} player
  * @property {boolean} playing
+ * @property {{title:string, url:string}} currentSong
  */
 
 /** @type Map<string,ServerQueue> */
 const queue = new Map()
 
+action_list = {
+  play: execute,
+  skip: skip,
+  stop: stop,
+  pause: pause,
+  resume: resume
+}
+
 client.on("messageCreate", (message) => {
+
   if (message.author.bot) return
   if (!message.content.startsWith(prefix)) return
-  const serverQueue = queue.get(message.guildId)
-  if (message.content.startsWith(`${prefix}play`)) {
-    execute(message, serverQueue)
-  };
+
+  const command = message.content.substring(prefix.length)
+
+  const args = command.split(/\s+/)
+  const action =  action_list[args[0]]
+  if (action) {
+    action(message)
+  } else {
+    message.channel.send(`**${args[0]}** n'est pas une commande reconnu`)
+  }
 });
 
 /**
- * @param message {Discord.Message}
+ * @param  {Discord.Message} message
  */
-async function execute(message, serverQueue) {
+async function execute(message) {
+  const serverQueue = queue.get(message.guild.id)
   const args = message.content.split(" ")
   const voiceChannel = message.member.voice.channel;
   if (!voiceChannel)
     return message.channel.send(
       "You need to be in a voice channel to play music!"
     );
-  const permissions = voiceChannel.permissionsFor(message.client.user);
-  if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
+  const permissions = voiceChannel.permissionsFor(message.guild.members.me);
+  if (!permissions.has("Connect") || !permissions.has("Speak")) {
     return message.channel.send(
       "I need the permissions to join and speak in your voice channel!"
     );
@@ -73,10 +92,33 @@ async function execute(message, serverQueue) {
         guildId: voiceChannel.guild.id,
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
       });
-      queueContruct.connection = connection;
-      queueContruct.player = createAudioPlayer()
+      const player = createAudioPlayer()
+
+      queueContruct.connection = connection
+      queueContruct.player = player
       connection.subscribe(queueContruct.player)
-      play(message.guild, queueContruct.songs[0]);
+
+      connection.on(VoiceConnectionStatus.Disconnected, async (oldState, newState) => {
+        try {
+          await Promise.race([
+            entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+            entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+          ]);
+          // Seems to be reconnecting to a new channel - ignore disconnect
+        } catch (error) {
+          // Seems to be a real disconnect which SHOULDN'T be recovered from
+          message.channel.send("Connection coupé")
+          queue.delete(message.guild.id)
+          connection.destroy();
+        }
+      });
+      player.on(AudioPlayerStatus.Idle, () =>{
+        play(message, queueContruct.songs.shift());
+      })
+      //player.on("error", (error) =>{
+      //  console.log(error.message)
+      //})
+      play(message, queueContruct.songs.shift());
     } catch (err) {
       console.log(err);
       queue.delete(message.guild.id);
@@ -89,20 +131,53 @@ async function execute(message, serverQueue) {
 }
 
 /**
- * @param {Discord.Guild} guild
+ * @param {Discord.Message} message
  * @param {{title:string, url:string}} song
  */
-function play(guild, song) {
-  const serverQueue = queue.get(guild.id);
+function play(message, song) {
+  const serverQueue = queue.get(message.guild.id);
   if (!song) {
     serverQueue.connection.destroy();
-    queue.delete(guild.id);
+    message.channel.send("Queue Finish")
+    queue.delete(message.guild.id);
     return;
   }
   const player = serverQueue.player
   let resource = createAudioResource(ytdl(song.url, {filter: "audioonly", format:"m4a"}))
   player.play(resource)
+  serverQueue.currentSong = song
+  serverQueue.textChannel.send(`Start playing: **${song.title}**`)
 }
 
-//const url = "https://m.youtube.com/watch?v=nhePDXNZ0kU"
-//ytdl(url).pipe(fs.createWriteStream("test.mp4"))
+/**
+ * @param  {Discord.Message} message
+ */
+function skip(message) {
+  const serverQueue = queue.get(message.guild.id)
+  message.channel.send(`Skip: **${serverQueue.currentSong.title}**`)
+  play(message.guild, serverQueue.songs.shift())
+}
+/**
+ * @param  {Discord.Message} message
+ */
+function stop(message) {
+  queue.get(message.guild.id).connection.destroy()
+  message.channel.send("Connection coupé")
+  queue.delete(message.guild.id)
+}
+/**
+ * @param  {Discord.Message} message
+ */
+function pause(message) {
+  const serverQueue = queue.get(message.guild.id)
+  serverQueue.player.pause()
+  message.channel.send("le Player est en Pause")
+}
+/**
+ * @param  {Discord.Message} message
+ */
+function resume(message) {
+  const serverQueue = queue.get(message.guild.id)
+  serverQueue.player.unpause()
+  message.channel.send("le Player est Reparti")
+}

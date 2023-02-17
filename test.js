@@ -1,5 +1,5 @@
 const ytdl = require("ytdl-core");
-
+const fs = require("fs")
 const Discord = require("discord.js");
 
 const {joinVoiceChannel, createAudioResource, createAudioPlayer} = require('@discordjs/voice');
@@ -20,28 +20,14 @@ client.on("messageCreate", (message) => {
   if (!message.content.startsWith(prefix)) return
   //const serverQueue = queue.get(message.guildId)
   if (message.content.startsWith(`${prefix}play`)) {
-	message.channel.send("message recu")
+	  message.channel.send("message recu")
     execute(message)
   };
+  if (message.content.startsWith(`${prefix}download`)) {
+      message.channel.send("download ...")
+      const args = message.content.split(/\s+/)
+      ytdl(args[1], {filter: "audioonly", format:"m4a"}).pipe(fs.createWriteStream("test.m4a"))
+    };
 });
 
 
-/**
- * @param message {Discord.Message}
- */
-async function execute(message, serverQueue) {
-  const args = message.content.split(" ")
-  const voiceChannel = message.member.voice.channel;
-  const connection = joinVoiceChannel({
-    channelId: voiceChannel.id,
-    guildId: voiceChannel.guild.id,
-    adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-  });
-  player.on("error", (error) => {
-    console.log(error)
-  })
-	const subscription = connection.subscribe(player);
-	let resource = createAudioResource(ytdl(args[1], {filter: "audioonly", format:"m4a"}))
-
-	player.play(resource)
-}
