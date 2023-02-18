@@ -6,6 +6,7 @@ const { prefix } = require("./config.json");
 const { token } = require("./.token.json")
 const { AuditLogOptionsType } = require("discord.js");
 
+const { ServerQueue } = require("./ServerQueue")
 
 const client = new Discord.Client({ intents: ["Guilds", "GuildMessages", "MessageContent", "GuildVoiceStates", ""] });
 client.login(token);
@@ -34,27 +35,38 @@ action_list = {
 }
 
 client.on("messageCreate", (message) => {
-
   if (message.author.bot) return
   if (!message.content.startsWith(prefix)) return
 
-  const command = message.content.substring(prefix.length)
+  const args = getArgs(message)
 
-  const args = command.split(/\s+/)
-  const action =  action_list[args[0]]
-  if (action) {
-    action(message)
+  const action =  args[0].substring(prefix.length)
+  const sq = ServerQueue.getServerQueue(message.guildId)
+  if (sq) {
+    if (sq[action]) {
+      sq[action]()
+    } else {
+      message.channel.send(`**${action}** n'est pas reconnu comme command`)
+    }
   } else {
-    message.channel.send(`**${args[0]}** n'est pas une commande reconnu`)
+    new ServerQueue(message)
   }
 });
+
+/**
+ * @param  {Discord.Message} message
+ * @returns string[]
+ */
+function getArgs(message) {
+  return message.content.split(/\s+/)
+}
 
 /**
  * @param  {Discord.Message} message
  */
 async function execute(message) {
   const serverQueue = queue.get(message.guild.id)
-  const args = message.content.split(" ")
+  const args = getArgs(message)
   const voiceChannel = message.member.voice.channel;
   if (!voiceChannel)
     return message.channel.send(
