@@ -1,28 +1,38 @@
-import { Client } from "discord.js";
+import { Client, Collection } from "discord.js";
 import { json } from "stream/consumers";
 
-import config  from "./config.json" assert {type:"json"}
-import tokenjson  from "./.token.json" assert {type:"json"}
-const  {prefix}  = config
-const  {token}  = tokenjson
+import config from "./config.json" assert {type: "json"}
+import tokenjson from "./.token.json" assert {type: "json"}
+const { prefix } = config
+const { token } = tokenjson
 //const  {prefix}  = require("./config.json")
 //const  {token} = require( "./.token.json" )
 
 import { ServerQueue } from "./ServerQueue.js";
-import {getArgs} from "./util.js"
+import { getArgs } from "./util.js"
 
-const client = new Client({ intents: ["Guilds", "GuildMessages", "MessageContent", "GuildVoiceStates", ""] });
+var client = new Client({ intents: ["Guilds", "GuildMessages", "MessageContent", "GuildVoiceStates", ""] });
 
 client.login(token);
-
+Discord.
 
 client.on("messageCreate", (message) => {
-  if (message.author.bot) return
-  if (!message.content.startsWith(prefix)) return
+  if (message.author.bot || !message.content.startsWith(prefix)) return
+  
+  const voiceChannel = message.member.voice.channel;
+  if (!voiceChannel)
+    return message.channel.send(
+      "You need to be in a voice channel to play music!"
+    );
+  const permissions = voiceChannel.permissionsFor(message.guild.members.me);
+  if (!permissions.has("Connect") || !permissions.has("Speak")) {
+    return message.channel.send(
+      "I need the permissions to join and speak in your voice channel!"
+    );
+  }
 
   const args = getArgs(message)
-
-  const action =  args[0].substring(prefix.length)
+  const action = args[0].substring(prefix.length)
   const sq = ServerQueue.getServerQueue(message.guildId)
   if (sq) {
     if (sq[action]) {

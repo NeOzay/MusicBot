@@ -1,14 +1,12 @@
 import ytdl from "ytdl-core";
 const { getBasicInfo } = ytdl
 import Discord from "discord.js";
-import { joinVoiceChannel, createAudioResource, createAudioPlayer, VoiceConnection, AudioPlayer, AudioPlayerStatus, VoiceConnectionStatus, entersState } from '@discordjs/voice';
+import { joinVoiceChannel, createAudioResource, createAudioPlayer, AudioPlayerStatus, VoiceConnectionStatus, entersState } from '@discordjs/voice';
 
 import {getArgs} from "./util.js"
 
 /** @type Map<string,ServerQueue> */
 const queue = new Map()
-
-
 
 async function getSongInfo(url) {
   const songInfo = await getBasicInfo(url);
@@ -26,18 +24,6 @@ class ServerQueue {
   /** @param {Discord.Message} message */
   async #init(message) {
     const args = getArgs(message)
-    const voiceChannel = message.member.voice.channel;
-    if (!voiceChannel)
-      return message.channel.send(
-        "You need to be in a voice channel to play music!"
-      );
-    const permissions = voiceChannel.permissionsFor(message.guild.members.me);
-    if (!permissions.has("Connect") || !permissions.has("Speak")) {
-      return message.channel.send(
-        "I need the permissions to join and speak in your voice channel!"
-      );
-    }
-
     this.textChannel = message.channel
     this.voiceChannel = voiceChannel
     this.connection = null
@@ -60,7 +46,7 @@ class ServerQueue {
       this.connection = connection
       this.player = player
       connection.subscribe(player)
-      this.#play(this.songs.shift());
+      this.#startPlay(this.songs.shift());
 
     } catch (err) {
       console.log(err);
@@ -79,10 +65,10 @@ class ServerQueue {
   /**
    * @param {{title: string,url: string}} song 
    */
-  #play(song) {
+  #startPlay(song) {
     if (!song) {
       this.connection.destroy();
-      this.textChannel.send("Queue Finish")
+      this.textChannel.send("Queue Finish!")
       queue.delete(this.guild.id);
       return;
     }
@@ -104,34 +90,34 @@ class ServerQueue {
 
   skip() {
     this.textChannel.send(`Skip: **${this.currentSong.title}**`)
-    this.#play(this.songs.shift())
+    this.#startPlay(this.songs.shift())
   }
 
   stop() {
     this.connection.destroy()
-    this.textChannel.send("Bot interompu")
+    this.textChannel.send("Bot interompu!")
     queue.delete(message.guild.id)
   }
 
   pause() {
     this.player.pause()
-    this.textChannel.send("le Player est en Pause")
+    this.textChannel.send("🛑 Stopped the music.")
   }
 
   resume() {
     this.player.unpause()
-    this.textChannel.send("le Player est Reparti")
+    this.textChannel.send("🟢 Restart the music")
   }
 
   #newPlayer() {
     const player = createAudioPlayer()
 
     player.on(AudioPlayerStatus.Idle, () => {
-      this.#play(this.songs.shift());
+      this.#startPlay(this.songs.shift());
     })
-    //player.on("error", (error) =>{
-    //  console.log(error.message)
-    //})
+    player.on("error", (error) =>{
+      console.log(error)
+    })
     return player
   }
   #joinChannel() {
