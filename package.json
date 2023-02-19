@@ -12,6 +12,7 @@
     "discord.js": "^14.7.1",
     "ffmpeg-static": "^5.1.0",
     "libsodium-wrappers": "^0.7.11",
+    "node": "^14.21.2",
     "ytdl-core": "^4.11.2"
   },
   "repository": {
@@ -22,5 +23,6 @@
     "url": "https://github.com/NeOzay/MusicBot/issues"
   },
   "homepage": "https://github.com/NeOzay/MusicBot#readme",
-  "description": ""
+  "description": "",
+  "type": "module"
 }
