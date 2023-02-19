@@ -90,7 +90,7 @@ class ServerQueue {
     //ytdl(song.url, { filter: "audioonly", format: "m4a" })
     let resource = createAudioResource(ytdl(song.url, {
       filter: "audioonly",
-      fmt: "mp3",
+      format: "m4a",
       highWaterMark: 1 << 62,
       liveBuffer: 1 << 62,
       dlChunkSize: 0, //disabling chunking is recommended in discord bot
@@ -161,5 +161,5 @@ class ServerQueue {
     return queue.get(guildId)
   }
 }
-const _ServerQueue = ServerQueue;
-export { _ServerQueue as ServerQueue };
+
+export { ServerQueue };
