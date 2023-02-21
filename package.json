@@ -24,5 +24,9 @@
   },
   "homepage": "https://github.com/NeOzay/MusicBot#readme",
   "description": "",
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^18.14.0",
+    "ts-node": "^10.9.1"
+  }
 }
