@@ -1,6 +1,6 @@
 import ytdl from "ytdl-core";
 const { getBasicInfo } = ytdl
-import { Message, VoiceBasedChannel, VoiceChannel } from "discord.js";
+import { Guild, Message, VoiceBasedChannel, VoiceChannel } from "discord.js";
 import { joinVoiceChannel, createAudioResource, createAudioPlayer, AudioPlayerStatus, VoiceConnectionStatus, entersState, VoiceConnection, AudioPlayer } from '@discordjs/voice';
 
 import {getArgs} from "./utils.js"
@@ -22,14 +22,14 @@ interface songData {
 
 class ServerQueue {
     voiceChannel: VoiceBasedChannel;
-    connection: VoiceConnection | undefined;
+    connection!: VoiceConnection;
     songs: songData[];
     volume: number;
     playing: boolean;
-    guild: any;
-    currentSong: null;
+    guild: Guild;
+    currentSong: songData;
     textChannel: any;
-    player: AudioPlayer;
+    player!: AudioPlayer;
 
   constructor(message:Message) {
     const voiceChannel = message.member!.voice.channel!
@@ -38,8 +38,8 @@ class ServerQueue {
     this.songs = []
     this.volume = 5
     this.playing = true
-    this.guild = message.guild
-    this.currentSong = null
+    this.guild = message.guild!
+    this.currentSong = {title : "no song", url: ""}
     this.#init(message)
   }
   /** @constructor */
@@ -60,15 +60,15 @@ class ServerQueue {
       connection.subscribe(player)
       this.#startPlay(this.songs.shift());
 
-    } catch (err) {
+    } catch (err:any) {
       console.log(err);
-      queue.delete(message.guild.id);
+      queue.delete(this.guild.id);
       return message.channel.send(err);
     }
   }
 
   /** @param {Discord.Message} message */
-  async play(message) {
+  async play(message:Message) {
     const url = getArgs(message)[1]
     const song = await getSongInfo(url)
     this.songs.push(song);
@@ -77,7 +77,7 @@ class ServerQueue {
   /**
    * @param {{title: string,url: string}} song 
    */
-  #startPlay(song) {
+  #startPlay(song?:songData) {
     if (!song) {
       this.connection.destroy();
       this.textChannel.send("Queue Finish!")
@@ -108,7 +108,7 @@ class ServerQueue {
   stop() {
     this.connection.destroy()
     this.textChannel.send("Bot interompu!")
-    queue.delete(message.guild.id)
+    queue.delete(this.guild.id)
   }
 
   pause() {
@@ -148,14 +148,14 @@ class ServerQueue {
         // Seems to be reconnecting to a new channel - ignore disconnect
       } catch (error) {
         // Seems to be a real disconnect which SHOULDN'T be recovered from
-        message.channel.send("Connection interompu")
+        this.textChannel.send("Connection interompu")
         queue.delete(this.guild.id)
         connection.destroy();
       }
     });
     return connection
   }
-  static getServerQueue(guildId) {
+  static getServerQueue(guildId:string) {
     return queue.get(guildId)
   }
 }
