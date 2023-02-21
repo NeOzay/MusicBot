@@ -1,20 +1,11 @@
-import { Client, Collection } from "discord.js";
-import { json } from "stream/consumers";
-
+import { client } from "./client"
 import config from "./config.json" assert {type: "json"}
-import tokenjson from "./.token.json" assert {type: "json"}
 const { prefix } = config
-const { token } = tokenjson
 //const  {prefix}  = require("./config.json")
 //const  {token} = require( "./.token.json" )
 
 import { ServerQueue } from "./ServerQueue.js";
 import { getArgs } from "./util.js"
-
-var client = new Client({ intents: ["Guilds", "GuildMessages", "MessageContent", "GuildVoiceStates", ""] });
-
-client.login(token);
-Discord.
 
 client.on("messageCreate", (message) => {
   if (message.author.bot || !message.content.startsWith(prefix)) return
