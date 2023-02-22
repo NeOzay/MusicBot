@@ -1,4 +1,4 @@
-import { client } from "./client"
+import  client  from "./client"
 import config from "./config.json"
 const { prefix } = config
 //const  {prefix}  = require("./config.json")
@@ -29,7 +29,7 @@ client.on("messageCreate", function (message) {
 
     const args = getArgs(message);
     const action = args[0].substring(prefix.length);
-    const sq = ServerQueue.getServerQueue(message.guildId);
+    const sq = ServerQueue.getServerQueue(message.guildId || "");
     if (sq) {
         if (sq[action]) {
             sq[action](message);
@@ -37,7 +37,7 @@ client.on("messageCreate", function (message) {
             message.channel.send(`**${action}** n'est pas reconnu comme commande`);
         }
     } else if (action == "play") {
-        new ServerQueue({ message });
+        new ServerQueue( message );
     } else {
         message.channel.send(`Utiliser **play** pour lancer le bot`);
     }
