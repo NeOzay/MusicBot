@@ -5,6 +5,6 @@ const executeCommand:Event = {
   name:Events.InteractionCreate,
   execute: async (client, interaction:BaseInteraction) =>{
     if (!interaction.isChatInputCommand()) return
-    interaction.
+    
   }
 }

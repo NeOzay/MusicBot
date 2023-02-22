@@ -3,42 +3,45 @@ import config from "./config.json"
 const { prefix } = config
 //const  {prefix}  = require("./config.json")
 //const  {token} = require( "./.token.json" )
-
+import fs from 'node:fs';
+import path from 'node:path';
+import { Events } from "discord.js";
 import { ServerQueue } from "./ServerQueue";
-import { getArgs } from "./utils"
+
+const commandsPath = path.join(__dirname, 'commands/');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+console.log(commandFiles, commandsPath)
+
+for (const file of commandFiles) {
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath).default;
+    console.log(command)
+	// Set a new item in the Collection with the key as the command name and the value as the exported module
+	if ('data' in command && 'execute' in command) {
+		client.commands.set(command.data.name, command);
+	} else {
+		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+	}
+}
 
 client.on("messageCreate", function (message) {
-    if (message.author.bot || !message.content.startsWith(prefix))
-        return;
+	if (message.author.bot || !message.content.startsWith(prefix))
+		 return;
 
-    const voiceChannel = message.member?.voice.channel;
-    if (!voiceChannel) {
-        message.channel.send(
-            "You need to be in a voice channel to play music!"
-        );
-        return
-    }
-    const permissions = voiceChannel.permissionsFor(message.guild!.members.me!);
 
-    if (!permissions.has("Connect") || !permissions.has("Speak")) {
-        message.channel.send(
-            "I need the permissions to join and speak in your voice channel!"
-        );
-        return
-    }
 
-    const args = getArgs(message);
-    const action = args[0].substring(prefix.length);
-    const sq = ServerQueue.getServerQueue(message.guildId || "");
-    if (sq) {
-        if (sq[action]) {
-            sq[action](message);
-        } else {
-            message.channel.send(`**${action}** n'est pas reconnu comme commande`);
-        }
-    } else if (action == "play") {
-        new ServerQueue( message );
-    } else {
-        message.channel.send(`Utiliser **play** pour lancer le bot`);
-    }
+	const args = getArgs(message);
+	const action = args[0].substring(prefix.length);
+	const sq = ServerQueue.getServerQueue(message.guildId ?? "");
+	if (sq) {
+		 if (sq[action]) {
+			  sq[action](message);
+		 } else {
+			  message.channel.send(`**${action}** n'est pas reconnu comme commande`);
+		 }
+	} else if (action == "play") {
+		 new ServerQueue( message );
+	} else {
+		 message.channel.send(`Utiliser **play** pour lancer le bot`);
+	}
 });

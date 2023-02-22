@@ -1,4 +1,4 @@
-import { client } from "./client.js"
+import client from "./client.js"
 import { EmbedBuilder } from "@discordjs/builders";
 import { Message } from "discord.js";
 
@@ -14,4 +14,24 @@ function createEmbed(message:Message) {
 		.setDescription('Some description here')
   return exampleEmbed
 }
-export { getArgs, createEmbed }
+
+function checkChannelAndPerm(message:Message) {
+	const voiceChannel = message.member?.voice.channel;
+	if (!voiceChannel) {
+		 message.channel.send(
+			  "You need to be in a voice channel to play music!"
+		 );
+		 return false
+	}
+	const permissions = voiceChannel.permissionsFor(message.guild!.members.me!);
+
+	if (!permissions.has("Connect") || !permissions.has("Speak")) {
+		 message.channel.send(
+			  "I need the permissions to join and speak in your voice channel!"
+		 );
+		 return false
+	}
+	return true
+}
+
+export { getArgs, createEmbed, checkChannelAndPerm }

@@ -67,12 +67,10 @@ class ServerQueue {
     }
   }
 
-  /** @param {Discord.Message} message */
-  async play(message:Message) {
-    const url = getArgs(message)[1]
+  async addSong(url:string) {
     const song = await getSongInfo(url)
     this.songs.push(song);
-    this.textChannel.send(`**${song.title}** has been added to the queue!`);
+    return song
   }
   /**
    * @param {{title: string,url: string}} song 
@@ -155,8 +153,8 @@ class ServerQueue {
     });
     return connection
   }
-  static getServerQueue(guildId:string) {
-    return queue.get(guildId)
+  static getServerQueue(guildId?:string) {
+    return queue.get(guildId ?? "")
   }
 }
 

@@ -1,14 +1,13 @@
 import { SlashCommandBuilder } from "discord.js";
-import { Command } from "src/struct/command";
+import { SlashCommand } from "src/struct/SlashCommand";
 
-export const command:Command = {
+const command:SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('ping')
-    .setDescription('Replies with Pong!')
-    .ar,
+    .setDescription('Replies with Pong!'),
   async execute(interaction) {
     await interaction.reply('Pong!');
-    interaction.
   }
 }
 
+export default command
