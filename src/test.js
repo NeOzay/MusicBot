@@ -7,9 +7,6 @@ const { prefix } = config
 
 import { getArgs, createEmbed } from "./util.js"
 
-import { exampleEmbed } from "./Embed.js";
-import { EmbedBuilder } from "@discordjs/builders";
-
 client.on("messageCreate", (message) => {
   if (message.author.bot || message.channel.id != "1076917563356872775") return
   const exampleEmbed1 = createEmbed(message)

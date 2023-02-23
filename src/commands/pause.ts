@@ -1,8 +1,9 @@
-import { ServerQueue } from "src/ServerQueue";
-import { Command } from "src/struct/Command";
+import { ServerQueue } from "../ServerQueue";
+import { Command } from "../struct/Command";
 
 const command: Command = {
-  name: "skip",
+  name: "pause",
+  aliases: [],
   permissions: [],
   async execute(message, args) {
     const sq = ServerQueue.getServerQueue(message.guildId)

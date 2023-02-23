@@ -1,11 +1,11 @@
 import { Events, Message } from "discord.js";
 import { Event } from "../struct/Event"
 import { prefix } from "../config.json"
-import { parceCommand } from "src/utils";
+import { parceCommand } from "../utils";
 
-const executeCommand: Event = {
+const executeCommand: Event<Events.MessageCreate> = {
   name: Events.MessageCreate,
-  execute: async (client, message: Message) => {
+  execute: async (client, message) => {
     if (message.author.bot || !message.content.startsWith(prefix)) return;
     const [commandName, args] = parceCommand(message)
     const command = client.commands.find(function(command, name) {
