@@ -99,24 +99,20 @@ class ServerQueue {
   }
 
   skip() {
-    this.textChannel.send(`Skip: **${this.currentSong.title}**`)
     this.#startPlay(this.songs.shift())
   }
 
   stop() {
     this.connection.destroy()
-    this.textChannel.send("Bot interompu!")
     queue.delete(this.guild.id)
   }
 
   pause() {
     this.player.pause()
-    this.textChannel.send("🛑 Stopped the music.")
   }
 
   resume() {
     this.player.unpause()
-    this.textChannel.send("🟢 Restart the music")
   }
 
   #newPlayer() {
@@ -153,7 +149,7 @@ class ServerQueue {
     });
     return connection
   }
-  static getServerQueue(guildId?:string) {
+  static getServerQueue(guildId:string|null) {
     return queue.get(guildId ?? "")
   }
 }

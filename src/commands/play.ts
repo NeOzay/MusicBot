@@ -4,6 +4,7 @@ import { checkChannelAndPerm } from "src/utils";
 
 const command: Command = {
 	name: "play",
+  aliases:[],
 	permissions: [],
 	async execute(message, args) {
 		if (!checkChannelAndPerm(message)) return
@@ -16,3 +17,5 @@ const command: Command = {
 			message.channel.send(`**${song.title}** has been added to the queue!`);
 	}
 }}
+
+export default command

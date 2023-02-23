@@ -6,6 +6,11 @@ function getArgs(message:Message) {
 	return message.content.split(/\s+/)
 }
 
+function parceCommand(message:Message): [string , string[]]{
+  const args = message.content.split(/\s+/)
+  return [args.shift()??"", args]
+}
+
 function createEmbed(message:Message) {
 	const iconURL = ( message ?  message.author.avatarURL() : client!.user!.avatarURL() ) as string
 	const exampleEmbed = new EmbedBuilder()
@@ -34,4 +39,4 @@ function checkChannelAndPerm(message:Message) {
 	return true
 }
 
-export { getArgs, createEmbed, checkChannelAndPerm }
+export { getArgs, createEmbed, checkChannelAndPerm, parceCommand }

@@ -5,4 +5,5 @@ export interface Command {
 	execute: (message:Message, args:string[]) => void,
 	permissions: PermissionFlags[]
 	cooldown?: number
+  aliases: string[]
 }
