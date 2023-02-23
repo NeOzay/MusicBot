@@ -7,7 +7,7 @@ import { BaseEvent } from "./struct/Event";
 
 const commandsPath = path.join(__dirname, 'commands/');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-console.log(commandFiles, commandsPath)
+//console.log(commandFiles, commandsPath)
 
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
@@ -23,12 +23,12 @@ for (const file of commandFiles) {
 
 const eventsPath = path.join(__dirname, 'events/');
 const eventsFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-console.log(eventsFiles, eventsPath)
+//console.log(eventsFiles, eventsPath)
 
 for (const file of eventsFiles) {
 	const filePath = path.join(eventsPath, file);
 	const event:BaseEvent = require(filePath).default;
-   console.log(event)
+   //console.log(event)
 	if ('name' in event && 'execute' in event) {
 		client.on(event.name, function (...args) {
 			console.log("event trigger")
