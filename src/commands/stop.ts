@@ -8,7 +8,7 @@ const command: Command = {
 	async execute(message) {
     const sq = ServerQueue.getServerQueue(message.guildId)
     if (sq) {
-      sq.skip()
+      sq.stop()
       message.channel.send("Bot interompu!")
     } else {
       message.channel.send(`Please add some tracks first`)

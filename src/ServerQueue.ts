@@ -1,37 +1,37 @@
-import ytdl from "ytdl-core";
-const { getBasicInfo } = ytdl
+import Playdl, { InfoData } from "play-dl"
 import { Guild, Message, VoiceBasedChannel, VoiceChannel } from "discord.js";
-import { joinVoiceChannel, createAudioResource, createAudioPlayer, AudioPlayerStatus, VoiceConnectionStatus, entersState, VoiceConnection, AudioPlayer } from '@discordjs/voice';
+import { joinVoiceChannel, createAudioResource, createAudioPlayer, AudioPlayerStatus, VoiceConnectionStatus, entersState, VoiceConnection, AudioPlayer, NoSubscriberBehavior } from '@discordjs/voice';
 
-import {getArgs} from "./utils.js"
+const queue: Map<string, ServerQueue> = new Map()
 
-const queue:Map<string, ServerQueue> = new Map()
-
-async function getSongInfo(url:string):Promise<songData> {
-  const songInfo = await getBasicInfo(url);
+async function getSongInfo(url: string) {
+  //const yt_info = await Playdl.video_info(url)
+  const yt_info = await Playdl.video_info(url)
   return {
-    title: songInfo.videoDetails.title,
-    url: songInfo.videoDetails.video_url,
+    info: yt_info,
+    url: yt_info.video_details.url,
+    title: yt_info.video_details.title
   };
 }
 
 interface songData {
-  title:string
-  url:string
+  info: InfoData
+  url: string
+  title?: string
 }
 
 class ServerQueue {
-    voiceChannel: VoiceBasedChannel;
-    connection!: VoiceConnection;
-    songs: songData[];
-    volume: number;
-    playing: boolean;
-    guild: Guild;
-    currentSong: songData;
-    textChannel: any;
-    player!: AudioPlayer;
+  voiceChannel: VoiceBasedChannel;
+  connection!: VoiceConnection;
+  songs: songData[];
+  volume: number;
+  playing: boolean;
+  guild: Guild;
+  currentSong!: songData;
+  textChannel: any;
+  player!: AudioPlayer;
 
-  constructor(message:Message) {
+  constructor(message: Message, url: string) {
     const voiceChannel = message.member!.voice.channel!
     this.textChannel = message.channel
     this.voiceChannel = voiceChannel
@@ -39,18 +39,13 @@ class ServerQueue {
     this.volume = 5
     this.playing = true
     this.guild = message.guild!
-    this.currentSong = {title : "no song", url: ""}
-    this.#init(message)
+  
+    queue.set(this.guild.id, this)
+    this.#init(message, url)
   }
   /** @constructor */
-  async #init(message:Message) {
-    const args = getArgs(message)
-
-    const song = await getSongInfo(args[1])
-
-    queue.set(this.guild.id, this)
-    this.songs.push(song);
-
+  async #init(message: Message, url: string) {
+    await this.addSong(url)
     try {
       const connection = this.#joinChannel()
       const player = this.#newPlayer()
@@ -60,22 +55,20 @@ class ServerQueue {
       connection.subscribe(player)
       this.#startPlay(this.songs.shift());
 
-    } catch (err:any) {
+    } catch (err: any) {
       console.log(err);
       queue.delete(this.guild.id);
       return message.channel.send(err);
     }
   }
 
-  async addSong(url:string) {
+  async addSong(url: string) {
     const song = await getSongInfo(url)
     this.songs.push(song);
     return song
   }
-  /**
-   * @param {{title: string,url: string}} song 
-   */
-  #startPlay(song?:songData) {
+
+  async #startPlay(song?: songData) {
     if (!song) {
       this.connection.destroy();
       this.textChannel.send("Queue Finish!")
@@ -84,15 +77,11 @@ class ServerQueue {
     }
     const player = this.player
     //ytdl(song.url, { filter: "audioonly", format: "m4a" })
-    let resource = createAudioResource(ytdl(song.url, {
-      filter: "audioonly",
-      format: "m4a",
-      highWaterMark: 1 << 62,
-      liveBuffer: 1 << 62,
-      dlChunkSize: 0, //disabling chunking is recommended in discord bot
-      bitrate: 128,
-      quality: "lowestaudio",
-    }))
+    console.log(song.info)
+    let stream = await Playdl.stream_from_info(song.info)
+    let resource = createAudioResource(stream.stream, {
+      inputType: stream.type
+    })
     player.play(resource)
     this.currentSong = song
     this.textChannel.send(`Start playing: **${song.title}**`)
@@ -103,6 +92,7 @@ class ServerQueue {
   }
 
   stop() {
+    this.player.stop()
     this.connection.destroy()
     queue.delete(this.guild.id)
   }
@@ -116,16 +106,21 @@ class ServerQueue {
   }
 
   #newPlayer() {
-    const player = createAudioPlayer()
+    let player = createAudioPlayer({
+      behaviors: {
+        noSubscriber: NoSubscriberBehavior.Play
+      }
+    })
 
     player.on(AudioPlayerStatus.Idle, () => {
       this.#startPlay(this.songs.shift());
     })
-    player.on("error", (error) =>{
+    player.on("error", (error) => {
       console.log(error)
     })
     return player
   }
+
   #joinChannel() {
     const voiceChannel = this.voiceChannel
     var connection = joinVoiceChannel({
@@ -149,7 +144,7 @@ class ServerQueue {
     });
     return connection
   }
-  static getServerQueue(guildId:string|null) {
+  static getServerQueue(guildId: string | null) {
     return queue.get(guildId ?? "")
   }
 }

@@ -31,7 +31,7 @@ for (const file of eventsFiles) {
    //console.log(event)
 	if ('name' in event && 'execute' in event) {
 		client.on(event.name, function (...args) {
-			console.log("event trigger")
+			//console.log("event trigger")
 			event.execute(client, ...args)
 		})
 	} else {

@@ -1,4 +1,4 @@
-import { Events, Message } from "discord.js";
+import { Events } from "discord.js";
 import { Event } from "../struct/Event"
 import { prefix } from "../config.json"
 import { parceCommand } from "../utils";
