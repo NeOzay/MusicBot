@@ -10,6 +10,7 @@ const command: Command = {
     if (sq) {
       sq.skip()
       message.channel.send(`Skip: **${sq.currentSong.title}**`)
+      console.log(`Skip: **${sq.currentSong.title}**`)
     } else {
       message.channel.send(`Please add some tracks first`)
     }

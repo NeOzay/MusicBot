@@ -77,11 +77,11 @@ class ServerQueue {
     }
     const player = this.player
     //ytdl(song.url, { filter: "audioonly", format: "m4a" })
-    console.log(song.info)
     let stream = await Playdl.stream_from_info(song.info)
     let resource = createAudioResource(stream.stream, {
       inputType: stream.type
     })
+    console.log(`start to play "${song.title}"`)
     player.play(resource)
     this.currentSong = song
     this.textChannel.send(`Start playing: **${song.title}**`)

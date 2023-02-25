@@ -10,6 +10,7 @@ const command: Command = {
     if (sq) {
       sq.pause()
       message.channel.send("🛑 Stopped the music.")
+      console.log("Stopped the music.")      
     } else {
       message.channel.send(`Please add some tracks first`)
     }

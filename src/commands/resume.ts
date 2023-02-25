@@ -10,6 +10,7 @@ const command: Command = {
     if (sq) {
       sq.resume()
       message.channel.send("🟢 Restart the music")
+      console.log("Restart the music")
     } else {
       message.channel.send(`Please add some tracks first`)
     }

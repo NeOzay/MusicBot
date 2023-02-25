@@ -5,6 +5,7 @@ import { parceCommand } from "../utils";
 
 const executeCommand: Event<Events.MessageCreate> = {
   name: Events.MessageCreate,
+  once: false,
   execute: async (client, message) => {
     if (message.author.bot || !message.content.startsWith(prefix)) return;
     const [commandName, args] = parceCommand(message)

@@ -3,6 +3,7 @@ import { Client2 } from "../client"
 
 export interface BaseEvent {
 	name: keyof ClientEvents;
+	once: boolean
 	execute: (
 		client: Client2,
 		...args: any
@@ -11,6 +12,7 @@ export interface BaseEvent {
 
 export interface Event <K extends keyof ClientEvents>{
 	name: keyof ClientEvents;
+	once: boolean
 	execute: (
 		client: Client2,
 		...args: ClientEvents[K]

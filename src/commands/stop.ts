@@ -10,6 +10,7 @@ const command: Command = {
     if (sq) {
       sq.stop()
       message.channel.send("Bot interompu!")
+      console.log("Bot interompu!")
     } else {
       message.channel.send(`Please add some tracks first`)
     }

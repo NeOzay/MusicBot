@@ -1,4 +1,4 @@
-import client from "./client.js"
+import client from "./client"
 import { EmbedBuilder } from "@discordjs/builders";
 import { Message } from "discord.js";
 import {prefix} from "./config.json"
