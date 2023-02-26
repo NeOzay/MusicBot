@@ -1,13 +1,12 @@
 import client from "./client"
 import { EmbedBuilder } from "@discordjs/builders";
 import { Message } from "discord.js";
-import {prefix} from "./config.json"
 
 function getArgs(message:Message) {
 	return message.content.split(/\s+/)
 }
 
-function parceCommand(message:Message): [string , string[]]{
+function parceCommand(prefix: string, message:Message): [string , string[]]{
   const args = message.content.slice(prefix.length).split(/\s+/)
   return [args.shift()??"", args]
 }

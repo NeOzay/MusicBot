@@ -12,13 +12,10 @@ const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
 	const command: Command = require(filePath).default;
-	//console.log(command)
-	// Set a new item in the Collection with the key as the command name and the value as the exported module
-	if ('name' in command && 'execute' in command) {
-		client.commands.set(command.name, command);
-	} else {
-		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-	}
+	if (!(typeof command === "object" && "name" in command && "execute" in command)) { console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`); continue }
+	
+	client.commands.set(command.name, command);
+
 }
 
 const eventsPath = path.join(__dirname, 'events/');
@@ -29,8 +26,8 @@ for (const file of eventsFiles) {
 	const filePath = path.join(eventsPath, file);
 	const event: BaseEvent = require(filePath).default;
 	//console.log(event)
-	if (!('name' in event && 'execute' in event && "once" in event)) {console.log(`[WARNING] The event at ${filePath} is missing a required "data" or "execute" property.`); continue}
-	
+	if (!("name" in event && "execute" in event && "once" in event)) { console.log(`[WARNING] The event at ${filePath} is missing a required "data" or "execute" property.`); continue }
+
 	if (event.once) {
 		client.once(event.name, function (...args) {
 			//console.log("event trigger")
