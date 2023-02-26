@@ -13,7 +13,7 @@ for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
 	const command: Command = require(filePath).default;
 	if (!(typeof command === "object" && "name" in command && "execute" in command)) { console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`); continue }
-	
+
 	client.commands.set(command.name, command);
 
 }

@@ -1,5 +1,5 @@
 import Playdl, { InfoData } from "play-dl"
-import { Guild, Message, VoiceBasedChannel, VoiceChannel } from "discord.js";
+import { DMChannel, Guild, Message, NewsChannel, PartialDMChannel, PrivateThreadChannel, PublicThreadChannel, TextChannel, VoiceBasedChannel, VoiceChannel } from "discord.js";
 import { joinVoiceChannel, createAudioResource, createAudioPlayer, AudioPlayerStatus, VoiceConnectionStatus, entersState, VoiceConnection, AudioPlayer, NoSubscriberBehavior } from '@discordjs/voice';
 
 const queue: Map<string, ServerQueue> = new Map()
@@ -28,7 +28,7 @@ class ServerQueue {
   playing: boolean;
   guild: Guild;
   currentSong!: songData;
-  textChannel: any;
+  textChannel: DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel;
   player!: AudioPlayer;
 
   constructor(message: Message, url: string) {
@@ -55,6 +55,7 @@ class ServerQueue {
       connection.subscribe(player)
       this.#startPlay(this.songs.shift());
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.log(err);
       queue.delete(this.guild.id);
@@ -77,8 +78,8 @@ class ServerQueue {
     }
     const player = this.player
     //ytdl(song.url, { filter: "audioonly", format: "m4a" })
-    let stream = await Playdl.stream_from_info(song.info)
-    let resource = createAudioResource(stream.stream, {
+    const stream = await Playdl.stream_from_info(song.info)
+    const resource = createAudioResource(stream.stream, {
       inputType: stream.type
     })
     console.log(`start to play "${song.title}"`)
@@ -106,7 +107,7 @@ class ServerQueue {
   }
 
   #newPlayer() {
-    let player = createAudioPlayer({
+    const player = createAudioPlayer({
       behaviors: {
         noSubscriber: NoSubscriberBehavior.Play
       }
@@ -123,7 +124,7 @@ class ServerQueue {
 
   #joinChannel() {
     const voiceChannel = this.voiceChannel
-    var connection = joinVoiceChannel({
+    const connection = joinVoiceChannel({
       channelId: voiceChannel.id,
       guildId: voiceChannel.guild.id,
       adapterCreator: voiceChannel.guild.voiceAdapterCreator,
