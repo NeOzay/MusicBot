@@ -71,9 +71,13 @@ class ServerQueue {
 
   async #startPlay(song?: songData) {
     if (!song) {
-      this.connection.destroy();
-      this.textChannel.send("Queue Finish!")
-      queue.delete(this.guild.id);
+      try{
+        queue.delete(this.guild.id);
+        this.connection.destroy();
+        this.textChannel.send("Queue Finish!")
+      } catch (err) {
+        console.log(err)
+      }
       return;
     }
     const player = this.player
