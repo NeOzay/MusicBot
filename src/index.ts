@@ -6,7 +6,7 @@ import { Command } from "./struct/Command";
 import { BaseEvent } from "./struct/Event";
 
 const commandsPath = path.join(__dirname, 'commands/');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts'));
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts') || file.endsWith(".js"));
 //console.log(commandFiles, commandsPath)
 
 for (const file of commandFiles) {
@@ -15,7 +15,6 @@ for (const file of commandFiles) {
 	if (!(typeof command === "object" && "name" in command && "execute" in command)) { console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`); continue }
 
 	client.commands.set(command.name, command);
-
 }
 
 const eventsPath = path.join(__dirname, 'events/');
