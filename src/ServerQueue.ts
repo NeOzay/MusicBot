@@ -2,6 +2,10 @@ import Playdl, { InfoData } from "play-dl"
 import { DMChannel, Guild, Message, NewsChannel, PartialDMChannel, PrivateThreadChannel, PublicThreadChannel, TextChannel, VoiceBasedChannel, VoiceChannel } from "discord.js";
 import { joinVoiceChannel, createAudioResource, createAudioPlayer, AudioPlayerStatus, VoiceConnectionStatus, entersState, VoiceConnection, AudioPlayer, NoSubscriberBehavior } from '@discordjs/voice';
 
+import fs from "fs"
+
+import youtubedl from "youtube-dl-exec"
+
 const queue: Map<string, ServerQueue> = new Map()
 
 async function getSongInfo(url: string) {
@@ -39,7 +43,7 @@ class ServerQueue {
     this.volume = 5
     this.playing = true
     this.guild = message.guild!
-  
+
     queue.set(this.guild.id, this)
     this.#init(message, url)
   }
@@ -55,7 +59,7 @@ class ServerQueue {
       connection.subscribe(player)
       this.#startPlay(this.songs.shift());
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.log(err);
       queue.delete(this.guild.id);
@@ -70,8 +74,9 @@ class ServerQueue {
   }
 
   async #startPlay(song?: songData) {
+    //
     if (!song) {
-      try{
+      try {
         queue.delete(this.guild.id);
         this.connection.destroy();
         this.textChannel.send("Queue Finish!")
@@ -82,10 +87,12 @@ class ServerQueue {
     }
     const player = this.player
     //ytdl(song.url, { filter: "audioonly", format: "m4a" })
-    const stream = await Playdl.stream_from_info(song.info)
-    const resource = createAudioResource(stream.stream, {
-      inputType: stream.type
-    })
+    //const stream = await Playdl.stream_from_info(song.info)
+    const d = await youtubedl(song.url, {extractAudio:true, audioFormat:"best", output:"%(title)s.%(ext)s", simulate:false, getFilename:true})
+
+    console.log(d);
+    
+    const resource = createAudioResource(d)
     console.log(`start to play "${song.title}"`)
     player.play(resource)
     this.currentSong = song
@@ -121,6 +128,8 @@ class ServerQueue {
       this.#startPlay(this.songs.shift());
     })
     player.on("error", (error) => {
+      console.log("erreur du player");
+
       console.log(error)
     })
     return player
