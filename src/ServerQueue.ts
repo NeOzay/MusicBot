@@ -2,9 +2,7 @@ import Playdl, { InfoData } from "play-dl"
 import { DMChannel, Guild, Message, NewsChannel, PartialDMChannel, PrivateThreadChannel, PublicThreadChannel, TextChannel, VoiceBasedChannel, VoiceChannel } from "discord.js";
 import { joinVoiceChannel, createAudioResource, createAudioPlayer, AudioPlayerStatus, VoiceConnectionStatus, entersState, VoiceConnection, AudioPlayer, NoSubscriberBehavior } from '@discordjs/voice';
 
-import fs from "fs"
-
-import youtubedl from "youtube-dl-exec"
+import manager from "./SongManager"
 
 const queue: Map<string, ServerQueue> = new Map()
 
@@ -89,11 +87,10 @@ class ServerQueue {
     const player = this.player
     //ytdl(song.url, { filter: "audioonly", format: "m4a" })
     //const stream = await Playdl.stream_from_info(song.info)
-    const d = await youtubedl(song.url, {extractAudio:true, audioFormat:"best", output:"tempfile.%(ext)s", simulate:false})
-
-    console.log(d);
+    const songName = await manager.get(song.url)
+    console.log(songName);
     
-    const resource = createAudioResource(<string> <unknown>d)
+    const resource = createAudioResource(songName)
     console.log(`start to play "${song.title}"`)
     player.play(resource)
     this.currentSong = song
@@ -158,6 +155,12 @@ class ServerQueue {
         connection.destroy();
       }
     });
+    connection.on('stateChange', (old_state, new_state) => {
+      console.log('join', 'Connection state change from', old_state.status, 'to', new_state.status)
+      if (old_state.status === VoiceConnectionStatus.Ready && new_state.status === VoiceConnectionStatus.Connecting) {
+          connection.configureNetworking();
+      }
+  })
     return connection
   }
   static getServerQueue(guildId: string | null) {
