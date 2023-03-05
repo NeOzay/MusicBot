@@ -79,6 +79,7 @@ class ServerQueue {
       try {
         queue.delete(this.guild.id);
         this.connection.destroy();
+        console.log("no song, Queue Finish!")
         this.textChannel.send("Queue Finish!")
       } catch (err) {
         console.log(err)
@@ -88,11 +89,11 @@ class ServerQueue {
     const player = this.player
     //ytdl(song.url, { filter: "audioonly", format: "m4a" })
     //const stream = await Playdl.stream_from_info(song.info)
-    const d = await youtubedl(song.url, {extractAudio:true, audioFormat:"best", output:"%(title)s.%(ext)s", simulate:false, getFilename:true})
+    const d = await youtubedl(song.url, {extractAudio:true, audioFormat:"best", output:"tempfile.%(ext)s", simulate:false})
 
     console.log(d);
     
-    const resource = createAudioResource(d)
+    const resource = createAudioResource(<string> <unknown>d)
     console.log(`start to play "${song.title}"`)
     player.play(resource)
     this.currentSong = song
@@ -125,6 +126,7 @@ class ServerQueue {
     })
 
     player.on(AudioPlayerStatus.Idle, () => {
+      console.log("player stats Idle")
       this.#startPlay(this.songs.shift());
     })
     player.on("error", (error) => {
