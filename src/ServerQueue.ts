@@ -1,5 +1,5 @@
 import Playdl, { InfoData } from "play-dl"
-import { DMChannel, Guild, Message, NewsChannel, PartialDMChannel, PrivateThreadChannel, PublicThreadChannel, TextChannel, VoiceBasedChannel, VoiceChannel } from "discord.js";
+import { Guild, Message, TextChannel, VoiceBasedChannel } from "discord.js";
 import { joinVoiceChannel, createAudioResource, createAudioPlayer, AudioPlayerStatus, VoiceConnectionStatus, entersState, VoiceConnection, AudioPlayer, NoSubscriberBehavior } from '@discordjs/voice';
 
 import manager from "./SongManager"
@@ -30,12 +30,12 @@ class ServerQueue {
   playing: boolean;
   guild: Guild;
   currentSong!: songData;
-  textChannel: DMChannel | PartialDMChannel | NewsChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<boolean> | VoiceChannel;
+  textChannel: TextChannel;
   player!: AudioPlayer;
 
   constructor(message: Message, url: string) {
     const voiceChannel = message.member!.voice.channel!
-    this.textChannel = message.channel
+    this.textChannel = message.channel as TextChannel
     this.voiceChannel = voiceChannel
     this.songs = []
     this.volume = 5
@@ -61,7 +61,7 @@ class ServerQueue {
     } catch (err: any) {
       console.log(err);
       queue.delete(this.guild.id);
-      return message.channel.send(err);
+      return (message.channel as TextChannel).send(err);
     }
   }
 
