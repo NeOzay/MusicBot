@@ -6,7 +6,7 @@ export interface BaseEvent {
 	once: boolean
 	execute: (
 		client: Client2,
-		...args: any
+		...args: unknown[]
 	) => Awaitable<void>
 }
 
