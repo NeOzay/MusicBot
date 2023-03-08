@@ -1,7 +1,7 @@
 import client from "./client"
 import { EmbedBuilder } from "@discordjs/builders";
 import { Message } from "discord.js";
-import { IMessage } from "./struct/Command";
+import { MessageTextBase } from "./struct/Command";
 
 function getArgs(message: Message) {
 	return message.content.split(/\s+/)
@@ -12,7 +12,7 @@ function parceCommand(prefix: string, message: Message): [string, string[]] {
 	return [args.shift() ?? "", args]
 }
 
-function createEmbed(message: IMessage) {
+function createEmbed(message: MessageTextBase) {
 	const iconURL = (message ? message.author.avatarURL() : client.user?.avatarURL() ?? "") as string
 	const exampleEmbed = new EmbedBuilder()
 		.setColor(0x0099FF)
@@ -21,7 +21,7 @@ function createEmbed(message: IMessage) {
 	return exampleEmbed
 }
 
-function checkChannelAndPerm(message: IMessage) {
+function checkChannelAndPerm(message: MessageTextBase) {
 	if (!(message.member?.voice.channel && message.guild?.members.me)) {
 		message.channel.send(
 			"You need to be in a voice channel to play music!"

@@ -2,7 +2,7 @@ import { Events, TextChannel } from "discord.js";
 import { Event } from "../struct/Event"
 import { prefix as defautPrefix } from "../config.json"
 import { parceCommand } from "../utils";
-import { IMessage } from "src/struct/Command";
+import { MessageTextBase } from "src/struct/Command";
 
 const executeCommand: Event<Events.MessageCreate> = {
   name: Events.MessageCreate,
@@ -17,7 +17,7 @@ const executeCommand: Event<Events.MessageCreate> = {
       })
 
       if (command) {
-        command.execute(<IMessage>message, args)
+        command.execute(<MessageTextBase>message, args)
       } else {
         message.channel.send(`**${commandName}** n'est pas reconnu comme commande.\nUtilser **${prefix}help** pour lister toutes les commands disponible.`);
       }

@@ -1,6 +1,6 @@
 import { Message, PermissionFlags, TextChannel } from "discord.js";
 
-export interface IMessage extends Message<boolean> {
+export interface MessageTextBase extends Message<boolean> {
   channel: TextChannel
 }
 
@@ -10,5 +10,5 @@ export interface Command {
 	permissions?: PermissionFlags[]
 	cooldown?: number
 	aliases: string[]
-	execute: (message:IMessage, args:string[]) => void,
+	execute: (message:MessageTextBase, args:string[]) => void,
 }
