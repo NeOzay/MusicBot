@@ -1,7 +1,7 @@
 import {existsSync} from "node:fs"
 import { ClientOptions, Collection } from "discord.js";
 
-import {Logger} from "ts-logger"
+import {Logger} from "@neozay/ts-logger"
 
 import { Client } from "discord.js";
 import {token} from "./.token.json" 
